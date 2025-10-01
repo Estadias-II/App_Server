@@ -1,4 +1,4 @@
-import { Table, Column, DataType, Default, Model, BelongsTo, HasOne } from "sequelize-typescript";
+import { Table, Column, DataType, Default, Model, HasOne } from "sequelize-typescript";
 import { UserModel } from './UserModel';
 
 @Table({

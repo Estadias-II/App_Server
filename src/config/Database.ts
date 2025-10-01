@@ -1,8 +1,7 @@
 import dotenv from 'dotenv';
 import colors from 'colors';
 import { Sequelize } from 'sequelize-typescript';
-import { UserModel } from '../models';
-import { UserRoleModel } from '../models/UserRoleModel';
+import { UserModel, UserRoleModel } from '../models';
 
 export class Database {
     private DB_HOST:        string;
