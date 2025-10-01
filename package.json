@@ -1,0 +1,22 @@
+{
+  "name": "app_server",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "Nyx Blomkvist",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --exec tsx src/index.ts"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.3",
+    "colors": "^1.4.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.20.6"
+  }
+}
