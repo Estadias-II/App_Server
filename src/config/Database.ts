@@ -4,11 +4,11 @@ import { Sequelize } from 'sequelize-typescript';
 import { UserModel, UserRoleModel } from '../models';
 
 export class Database {
-    private DB_HOST:        string;
-    private DB_NAME:        string;
-    private DB_USER:        string;
-    private DB_PASSWORD:    string;
-    private DB_PORT:        number;
+    private readonly DB_HOST:        string;
+    private readonly DB_NAME:        string;
+    private readonly DB_USER:        string;
+    private readonly DB_PASSWORD:    string;
+    private readonly DB_PORT:        number;
 
     constructor() {
         dotenv.config();

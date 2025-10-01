@@ -1,0 +1,11 @@
+import { UserModel } from "../../models";
+
+export type RegisterCustomerProps = {
+    UserEmail: UserModel['UserEmail'];
+    UserPassword: UserModel['UserPassword'];
+    UserConfirmPassword: UserModel['UserPassword'];
+}
+
+export type VerifyPasswordIsValidProps = Pick<RegisterCustomerProps, 'UserPassword'>;
+export type VerifyPasswordsAreSameProps = Pick<RegisterCustomerProps, 'UserPassword' | 'UserConfirmPassword'>;
+export type SaveCustomerProps = Pick<RegisterCustomerProps, 'UserEmail' | 'UserPassword'>;
