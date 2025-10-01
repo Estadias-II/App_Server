@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import colors from 'colors';
 import { Sequelize } from 'sequelize-typescript';
+import { UserModel } from '../models';
+import { UserRoleModel } from '../models/UserRoleModel';
 
 export class Database {
     private DB_HOST:        string;
@@ -26,6 +28,10 @@ export class Database {
                     dialect: "mysql",
                     port: this.DB_PORT,
                     host: this.DB_HOST,
+                    models: [
+                        UserModel,
+                        UserRoleModel,
+                    ]
                 }
             )
 
