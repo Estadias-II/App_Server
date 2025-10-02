@@ -1,12 +1,16 @@
 import { UserRepository } from '../repositories/UserRepository';
 import { Response } from 'express';
 import { RegisterCustomerProps, VerifyPasswordIsValidProps, VerifyPasswordsAreSameProps } from '../types/user/UserTypes';
+import { UserRoleRepository } from '../repositories/UserRoleRepository';
+import { encryptPassword } from '../helpers';
 
 export class UserService {
     private readonly userRepository: UserRepository;
+    private readonly userRoleRepository: UserRoleRepository;
 
     public constructor() {
         this.userRepository = new UserRepository();
+        this.userRoleRepository = new UserRoleRepository();
     }
 
     public async registerCustomer(registerCustomerProps: RegisterCustomerProps, res: Response) {
@@ -18,7 +22,12 @@ export class UserService {
         const user = await this.userRepository.findByEmail(UserEmail);
         if (user) return res.status(409).send({error: 'El email ya está siendo utilizado por otra persona!'});
 
-        await this.userRepository.save({UserEmail, UserPassword});
+        const userRoleModel = await this.userRoleRepository.getRoleByName('Customer');
+        if (!userRoleModel) return res.status(409).send({error: 'El rol para el usuario no es válido!'});
+        const { UserRoleId } = userRoleModel;
+
+        const encryptedPassword = await encryptPassword(UserPassword)
+        await this.userRepository.save({UserEmail, UserPassword: encryptedPassword, UserRoleId});
     }
 
     private verifyPasswordIsValid(verifyPasswordIsValidProps: VerifyPasswordIsValidProps, res: Response) {

@@ -1,4 +1,4 @@
-import { UserModel } from "../../models";
+import { UserModel, UserRoleModel } from "../../models";
 
 export type RegisterCustomerProps = {
     UserEmail: UserModel['UserEmail'];
@@ -8,4 +8,6 @@ export type RegisterCustomerProps = {
 
 export type VerifyPasswordIsValidProps = Pick<RegisterCustomerProps, 'UserPassword'>;
 export type VerifyPasswordsAreSameProps = Pick<RegisterCustomerProps, 'UserPassword' | 'UserConfirmPassword'>;
-export type SaveCustomerProps = Pick<RegisterCustomerProps, 'UserEmail' | 'UserPassword'>;
+export type SaveCustomerProps = Pick<RegisterCustomerProps, 'UserEmail' | 'UserPassword'> & {
+    UserRoleId: UserRoleModel['UserRoleId']
+};

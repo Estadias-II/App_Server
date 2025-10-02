@@ -3,10 +3,11 @@ import { SaveCustomerProps } from "../types/user/UserTypes";
 
 export class UserRepository {
     public async save(saveCustomerProps: SaveCustomerProps) {
-        const { UserEmail, UserPassword } = saveCustomerProps;
+        const { UserEmail, UserPassword, UserRoleId } = saveCustomerProps;
         await UserModel.create({
             UserEmail,
-            UserPassword
+            UserPassword,
+            UserRole: UserRoleId
         })
     }
 
