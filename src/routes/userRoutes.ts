@@ -18,4 +18,17 @@ router.post('/register-customer', [
 ], 
     verifyRequestErrors,
     userController.registerCustomer.bind(userController)
-)
+);
+
+
+router.post('/login-customer', [
+    body('UserEmail')
+        .notEmpty().withMessage("El campo UserEmail es obligatorio")
+        .isEmail().withMessage("El email introducido no es válido")
+        .normalizeEmail(),
+    body("UserPassword")
+        .notEmpty().withMessage("El campo UserPassword es obligatorio"),
+], 
+    verifyRequestErrors,
+    userController.loginCustomer.bind(userController)
+);

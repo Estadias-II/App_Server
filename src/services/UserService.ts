@@ -1,8 +1,7 @@
-import { UserRepository } from '../repositories/UserRepository';
 import { Response } from 'express';
-import { RegisterCustomerProps, VerifyPasswordIsValidProps, VerifyPasswordsAreSameProps } from '../types/user/UserTypes';
-import { UserRoleRepository } from '../repositories/UserRoleRepository';
-import { encryptPassword } from '../helpers';
+import { LoginCustomerProps, RegisterCustomerProps, VerifyPasswordIsValidProps, VerifyPasswordsAreSameProps } from '../types/user/UserTypes';
+import { comparePasswords, encryptPassword } from '../helpers';
+import { UserRoleRepository, UserRepository } from '../repositories';
 
 export class UserService {
     private readonly userRepository: UserRepository;
@@ -29,6 +28,16 @@ export class UserService {
         const encryptedPassword = await encryptPassword(UserPassword)
         
         await this.userRepository.save({UserEmail, UserPassword: encryptedPassword, UserRoleId});
+    }
+
+    public async loginCustomer(loginCustomerProps: LoginCustomerProps, res: Response) {
+        const { UserEmail, UserPassword } = loginCustomerProps;
+
+        const user = await this.userRepository.findByEmail(UserEmail);
+        if (!user) return res.status(404).send({error: 'No se encontró ningun usuario con el email dado!'});
+
+        const compareResult = await comparePasswords({EncryptedPassword: user.UserPassword, RequestPassword: UserPassword});
+        if (!compareResult) return res.status(409).send({error: "El password es incorrecto!"});
     }
 
     private verifyPasswordIsValid(verifyPasswordIsValidProps: VerifyPasswordIsValidProps, res: Response) {

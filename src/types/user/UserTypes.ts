@@ -11,3 +11,8 @@ export type VerifyPasswordsAreSameProps = Pick<RegisterCustomerProps, 'UserPassw
 export type SaveCustomerProps = Pick<RegisterCustomerProps, 'UserEmail' | 'UserPassword'> & {
     UserRoleId: UserRoleModel['UserRoleId']
 };
+export type LoginCustomerProps = Pick<RegisterCustomerProps, 'UserEmail' | 'UserPassword'>;
+export type ComparePasswordsProps = {
+    EncryptedPassword: UserModel['UserPassword'];
+    RequestPassword: UserModel['UserPassword'];
+}

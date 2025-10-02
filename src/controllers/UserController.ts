@@ -19,4 +19,15 @@ export class UserController {
 
         res.status(201).json({message: 'Tu cuenta ha sido creada exitosamente!'});
     }
+
+    public async loginCustomer(req: Request, res: Response): Promise<void> {
+        const { UserEmail, UserPassword } = req.body;
+
+        await this.userService.loginCustomer({
+            UserEmail,
+            UserPassword
+        }, res);
+
+        res.send("Correcto");
+    }
 }
