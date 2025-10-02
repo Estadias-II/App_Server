@@ -22,11 +22,12 @@ export class UserService {
         const user = await this.userRepository.findByEmail(UserEmail);
         if (user) return res.status(409).send({error: 'El email ya está siendo utilizado por otra persona!'});
 
-        const userRoleModel = await this.userRoleRepository.getRoleByName('Customer');
-        if (!userRoleModel) return res.status(409).send({error: 'El rol para el usuario no es válido!'});
-        const { UserRoleId } = userRoleModel;
+        const userRoleModel = await this.userRoleRepository.getRoleByName({UserRoleName: 'Customer'});
+        if (!userRoleModel) return res.status(409).send({error: 'El rol para el cliente no es válido!'});
 
+        const { UserRoleId } = userRoleModel;
         const encryptedPassword = await encryptPassword(UserPassword)
+        
         await this.userRepository.save({UserEmail, UserPassword: encryptedPassword, UserRoleId});
     }
 
