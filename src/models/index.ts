@@ -1,3 +1,3 @@
-export { UserRoleModel } from "./UserRoleModel";
-export { UserModel } from "./UserModel";
-
+export { CarritoModel } from "./CarritoModel";
+export { UCategoriaModel } from "./UCategoriaModel";
+export { UsuarioModel } from "./UsuarioModel";

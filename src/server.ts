@@ -1,6 +1,6 @@
 import express from 'express';
 import { Database } from './config';
-import { userRoutes } from './routes';
+import {router as usuarioRouter} from './routes/usuarioRoutes';
 
 const server = express();
 const database = new Database();
@@ -9,7 +9,8 @@ const database = new Database();
 database.connectDatabase();
 server.use(express.json());
 
-//Server Routes
-server.use('/api/user', userRoutes);
+//Routes
+
+server.use('/api/usuarios', usuarioRouter);
 
 export default server;

@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import colors from 'colors';
 import { Sequelize } from 'sequelize-typescript';
-import { UserModel, UserRoleModel } from '../models';
+import { UsuarioModel, UCategoriaModel, CarritoModel } from '../models';
 
 export class Database {
     private readonly DB_HOST:        string;
@@ -28,8 +28,9 @@ export class Database {
                     port: this.DB_PORT,
                     host: this.DB_HOST,
                     models: [
-                        UserModel,
-                        UserRoleModel,
+                        UsuarioModel,
+                        UCategoriaModel,
+                        CarritoModel,
                     ]
                 }
             )
