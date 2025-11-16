@@ -1,16 +1,17 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { UsuarioModel } from "../models/UsuarioModel";
+import { generarJWT } from "../utils/generarJWT";
 
 export class UsuarioController {
-    
+
     // Obtener todos los usuarios (sin contraseñas)
     public static getAllUsuarios = async (req: Request, res: Response) => {
         try {
             const usuarios = await UsuarioModel.findAll({
                 attributes: { exclude: ['contraseña'] }
             });
-            
+
             res.json({
                 success: true,
                 data: usuarios
@@ -205,7 +206,6 @@ export class UsuarioController {
         try {
             const { correo, contraseña } = req.body;
 
-            // Buscar usuario por correo
             const usuario = await UsuarioModel.findOne({ where: { correo } });
             if (!usuario) {
                 return res.status(401).json({
@@ -214,7 +214,6 @@ export class UsuarioController {
                 });
             }
 
-            // Verificar contraseña
             const contraseñaValida = await bcrypt.compare(contraseña, usuario.contraseña);
             if (!contraseñaValida) {
                 return res.status(401).json({
@@ -223,13 +222,15 @@ export class UsuarioController {
                 });
             }
 
-            // Excluir contraseña en la respuesta
+            const token = generarJWT(usuario.id);
+
             const usuarioResponse = { ...usuario.toJSON() };
-            delete (usuarioResponse as any).contraseña;
+            delete usuarioResponse.contraseña;
 
             res.json({
                 success: true,
                 message: 'Login exitoso',
+                token,
                 data: usuarioResponse
             });
 

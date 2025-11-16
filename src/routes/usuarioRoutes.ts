@@ -7,14 +7,15 @@ import {
     loginValidations 
 } from "../validations/usuarioValidations";
 import { verifyRequestErrors } from "../middlewares/verifyRequestErrors";
+import { validarJWT } from "../middlewares/validarJWT";
 
 export const router = Router();
 
 // GET - Obtener todos los usuarios
-router.get('/', UsuarioController.getAllUsuarios);
+router.get('/', validarJWT, UsuarioController.getAllUsuarios);
 
 // GET - Obtener usuario por ID
-router.get('/:id', idValidation, verifyRequestErrors, UsuarioController.getUsuarioById);
+router.get('/:id', validarJWT, idValidation, verifyRequestErrors, UsuarioController.getUsuarioById);
 
 // POST - Crear nuevo usuario
 router.post('/', createUsuarioValidations, verifyRequestErrors, UsuarioController.createUsuario);
