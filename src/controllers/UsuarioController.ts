@@ -53,6 +53,41 @@ export class UsuarioController {
         }
     }
 
+    // En UsuarioController.ts - agregar este método
+
+    public static getPerfil = async (req: Request, res: Response) => {
+        try {
+            // El usuario ya está disponible en req.usuario gracias al middleware validarJWT
+            const usuario = req.usuario;
+
+            if (!usuario) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            // Devolver solo los campos requeridos: idUsuario, nombres y apellidos
+            const perfil = {
+                idUsuario: usuario.idUsuario,
+                nombres: usuario.nombres,
+                apellidos: usuario.apellidos
+            };
+
+            res.json({
+                success: true,
+                data: perfil
+            });
+
+        } catch (error) {
+            console.error('Error al obtener perfil:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
     // Crear nuevo usuario
     public static createUsuario = async (req: Request, res: Response) => {
         try {
@@ -206,7 +241,11 @@ export class UsuarioController {
         try {
             const { correo, contraseña } = req.body;
 
-            const usuario = await UsuarioModel.findOne({ where: { correo } });
+            // Buscar usuario incluyendo la contraseña para la comparación
+            const usuario = await UsuarioModel.findOne({
+                where: { correo }
+            });
+
             if (!usuario) {
                 return res.status(401).json({
                     success: false,
@@ -222,8 +261,10 @@ export class UsuarioController {
                 });
             }
 
-            const token = generarJWT(usuario.id);
+            // Generar JWT usando el idUsuario (no solo "id")
+            const token = await generarJWT(usuario.idUsuario);
 
+            // Excluir contraseña en la respuesta
             const usuarioResponse = { ...usuario.toJSON() };
             delete usuarioResponse.contraseña;
 

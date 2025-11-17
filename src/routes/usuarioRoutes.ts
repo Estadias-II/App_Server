@@ -12,7 +12,9 @@ import { validarJWT } from "../middlewares/validarJWT";
 export const router = Router();
 
 // GET - Obtener todos los usuarios
-router.get('/', validarJWT, UsuarioController.getAllUsuarios);
+// router.get('/', validarJWT, UsuarioController.getAllUsuarios);
+
+router.get('/perfil', validarJWT, UsuarioController.getPerfil);
 
 // GET - Obtener usuario por ID
 router.get('/:id', validarJWT, idValidation, verifyRequestErrors, UsuarioController.getUsuarioById);
