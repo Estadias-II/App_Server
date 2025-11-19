@@ -5,7 +5,187 @@ import { generarJWT } from "../utils/generarJWT";
 
 export class UsuarioController {
 
-    // Obtener todos los usuarios (sin contraseñas)
+    // Obtener perfil básico del usuario autenticado
+    public static getPerfil = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+
+            if (!usuario) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            const perfil = {
+                idUsuario: usuario.idUsuario,
+                nombres: usuario.nombres,
+                apellidos: usuario.apellidos
+            };
+
+            res.json({
+                success: true,
+                data: perfil
+            });
+
+        } catch (error) {
+            console.error('Error al obtener perfil:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Obtener perfil completo del usuario autenticado
+    public static getPerfilCompleto = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+
+            if (!usuario) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            // Buscar usuario actualizado con todos los datos
+            const usuarioCompleto = await UsuarioModel.findByPk(usuario.idUsuario, {
+                attributes: { exclude: ['contraseña'] }
+            });
+
+            if (!usuarioCompleto) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            res.json({
+                success: true,
+                data: usuarioCompleto
+            });
+
+        } catch (error) {
+            console.error('Error al obtener perfil completo:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Actualizar perfil del usuario autenticado
+    public static updatePerfil = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+            const {
+                nombres,
+                apellidos,
+                fechaNacimiento,
+                pais,
+                ciudad,
+                codigoPostal
+            } = req.body;
+
+            if (!usuario) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            const usuarioActual = await UsuarioModel.findByPk(usuario.idUsuario);
+            if (!usuarioActual) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            // Actualizar campos permitidos
+            await usuarioActual.update({
+                nombres: nombres || usuarioActual.nombres,
+                apellidos: apellidos || usuarioActual.apellidos,
+                fechaNacimiento: fechaNacimiento || usuarioActual.fechaNacimiento,
+                pais: pais || usuarioActual.pais,
+                ciudad: ciudad || usuarioActual.ciudad,
+                codigoPostal: codigoPostal || usuarioActual.codigoPostal
+            });
+
+            // Excluir contraseña en la respuesta
+            const usuarioResponse = { ...usuarioActual.toJSON() };
+            delete (usuarioResponse as any).contraseña;
+
+            res.json({
+                success: true,
+                message: 'Perfil actualizado exitosamente',
+                data: usuarioResponse
+            });
+
+        } catch (error) {
+            console.error('Error al actualizar perfil:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Cambiar contraseña del usuario autenticado
+    public static updatePassword = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+            const { contraseñaActual, nuevaContraseña } = req.body;
+
+            if (!usuario) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            const usuarioActual = await UsuarioModel.findByPk(usuario.idUsuario);
+            if (!usuarioActual) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            // Verificar contraseña actual
+            const contraseñaValida = await bcrypt.compare(contraseñaActual, usuarioActual.contraseña);
+            if (!contraseñaValida) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'La contraseña actual es incorrecta'
+                });
+            }
+
+            // Encriptar nueva contraseña
+            const saltRounds = 10;
+            const nuevaContraseñaEncriptada = await bcrypt.hash(nuevaContraseña, saltRounds);
+
+            // Actualizar contraseña
+            await usuarioActual.update({
+                contraseña: nuevaContraseñaEncriptada
+            });
+
+            res.json({
+                success: true,
+                message: 'Contraseña actualizada exitosamente'
+            });
+
+        } catch (error) {
+            console.error('Error al cambiar contraseña:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Los demás métodos permanecen igual...
     public static getAllUsuarios = async (req: Request, res: Response) => {
         try {
             const usuarios = await UsuarioModel.findAll({
@@ -25,7 +205,6 @@ export class UsuarioController {
         }
     }
 
-    // Obtener usuario por ID
     public static getUsuarioById = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
@@ -53,42 +232,6 @@ export class UsuarioController {
         }
     }
 
-    // En UsuarioController.ts - agregar este método
-
-    public static getPerfil = async (req: Request, res: Response) => {
-        try {
-            // El usuario ya está disponible en req.usuario gracias al middleware validarJWT
-            const usuario = req.usuario;
-
-            if (!usuario) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Usuario no encontrado'
-                });
-            }
-
-            // Devolver solo los campos requeridos: idUsuario, nombres y apellidos
-            const perfil = {
-                idUsuario: usuario.idUsuario,
-                nombres: usuario.nombres,
-                apellidos: usuario.apellidos
-            };
-
-            res.json({
-                success: true,
-                data: perfil
-            });
-
-        } catch (error) {
-            console.error('Error al obtener perfil:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error interno del servidor'
-            });
-        }
-    }
-
-    // Crear nuevo usuario
     public static createUsuario = async (req: Request, res: Response) => {
         try {
             const {
@@ -103,7 +246,6 @@ export class UsuarioController {
                 contraseña
             } = req.body;
 
-            // Verificar si el correo ya existe
             const existeCorreo = await UsuarioModel.findOne({ where: { correo } });
             if (existeCorreo) {
                 return res.status(400).json({
@@ -112,7 +254,6 @@ export class UsuarioController {
                 });
             }
 
-            // Verificar si el nombre de usuario ya existe
             const existeUsuario = await UsuarioModel.findOne({ where: { usuario } });
             if (existeUsuario) {
                 return res.status(400).json({
@@ -121,11 +262,9 @@ export class UsuarioController {
                 });
             }
 
-            // Encriptar contraseña
             const saltRounds = 10;
             const contraseñaEncriptada = await bcrypt.hash(contraseña, saltRounds);
 
-            // Crear usuario
             const nuevoUsuario = await UsuarioModel.create({
                 nombres,
                 apellidos,
@@ -138,7 +277,6 @@ export class UsuarioController {
                 contraseña: contraseñaEncriptada
             });
 
-            // Excluir contraseña en la respuesta
             const usuarioResponse = { ...nuevoUsuario.toJSON() };
             delete (usuarioResponse as any).contraseña;
 
@@ -157,7 +295,6 @@ export class UsuarioController {
         }
     }
 
-    // Actualizar usuario
     public static updateUsuario = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
@@ -178,7 +315,6 @@ export class UsuarioController {
                 });
             }
 
-            // Actualizar campos permitidos
             await usuario.update({
                 nombres: nombres || usuario.nombres,
                 apellidos: apellidos || usuario.apellidos,
@@ -188,7 +324,6 @@ export class UsuarioController {
                 codigoPostal: codigoPostal || usuario.codigoPostal
             });
 
-            // Excluir contraseña en la respuesta
             const usuarioResponse = { ...usuario.toJSON() };
             delete (usuarioResponse as any).contraseña;
 
@@ -207,7 +342,6 @@ export class UsuarioController {
         }
     }
 
-    // Eliminar usuario
     public static deleteUsuario = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
@@ -236,12 +370,10 @@ export class UsuarioController {
         }
     }
 
-    // Login de usuario
     public static login = async (req: Request, res: Response) => {
         try {
             const { correo, contraseña } = req.body;
 
-            // Buscar usuario incluyendo la contraseña para la comparación
             const usuario = await UsuarioModel.findOne({
                 where: { correo }
             });
@@ -261,10 +393,8 @@ export class UsuarioController {
                 });
             }
 
-            // Generar JWT usando el idUsuario (no solo "id")
             const token = await generarJWT(usuario.idUsuario);
 
-            // Excluir contraseña en la respuesta
             const usuarioResponse = { ...usuario.toJSON() };
             delete usuarioResponse.contraseña;
 

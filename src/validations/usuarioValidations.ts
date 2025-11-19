@@ -41,9 +41,6 @@ export const createUsuarioValidations = [
 ];
 
 export const updateUsuarioValidations = [
-    param('id')
-        .isInt().withMessage('ID debe ser un número entero'),
-    
     body('nombres')
         .optional()
         .isLength({ max: 250 }).withMessage('Los nombres no pueden tener más de 250 caracteres'),
@@ -67,6 +64,25 @@ export const updateUsuarioValidations = [
     body('codigoPostal')
         .optional()
         .isLength({ max: 45 }).withMessage('El código postal no puede tener más de 45 caracteres')
+];
+
+export const updatePasswordValidations = [
+    body('contraseñaActual')
+        .notEmpty().withMessage('La contraseña actual es requerida'),
+    
+    body('nuevaContraseña')
+        .notEmpty().withMessage('La nueva contraseña es requerida')
+        .isLength({ min: 6 }).withMessage('La nueva contraseña debe tener al menos 6 caracteres')
+        .isLength({ max: 250 }).withMessage('La nueva contraseña no puede tener más de 250 caracteres'),
+    
+    body('confirmarContraseña')
+        .notEmpty().withMessage('La confirmación de contraseña es requerida')
+        .custom((value, { req }) => {
+            if (value !== req.body.nuevaContraseña) {
+                throw new Error('Las contraseñas no coinciden');
+            }
+            return true;
+        })
 ];
 
 export const idValidation = [

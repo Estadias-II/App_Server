@@ -3,6 +3,7 @@ import { UsuarioController } from "../controllers/UsuarioController";
 import { 
     createUsuarioValidations, 
     updateUsuarioValidations, 
+    updatePasswordValidations,
     idValidation, 
     loginValidations 
 } from "../validations/usuarioValidations";
@@ -11,10 +12,17 @@ import { validarJWT } from "../middlewares/validarJWT";
 
 export const router = Router();
 
-// GET - Obtener todos los usuarios
-// router.get('/', validarJWT, UsuarioController.getAllUsuarios);
-
+// GET - Obtener perfil del usuario autenticado
 router.get('/perfil', validarJWT, UsuarioController.getPerfil);
+
+// GET - Obtener datos completos del usuario autenticado
+router.get('/perfil/completo', validarJWT, UsuarioController.getPerfilCompleto);
+
+// PUT - Actualizar perfil del usuario autenticado
+router.put('/perfil', validarJWT, updateUsuarioValidations, verifyRequestErrors, UsuarioController.updatePerfil);
+
+// PUT - Cambiar contraseña del usuario autenticado
+router.put('/perfil/password', validarJWT, updatePasswordValidations, verifyRequestErrors, UsuarioController.updatePassword);
 
 // GET - Obtener usuario por ID
 router.get('/:id', validarJWT, idValidation, verifyRequestErrors, UsuarioController.getUsuarioById);
