@@ -17,10 +17,23 @@ export class UsuarioController {
                 });
             }
 
+            // Buscar usuario actualizado con el rol
+            const usuarioCompleto = await UsuarioModel.findByPk(usuario.idUsuario, {
+                attributes: { exclude: ['contraseña'] }
+            });
+
+            if (!usuarioCompleto) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
             const perfil = {
-                idUsuario: usuario.idUsuario,
-                nombres: usuario.nombres,
-                apellidos: usuario.apellidos
+                idUsuario: usuarioCompleto.idUsuario,
+                nombres: usuarioCompleto.nombres,
+                apellidos: usuarioCompleto.apellidos,
+                rol: usuarioCompleto.rol // Asegúrate de incluir el rol
             };
 
             res.json({
@@ -395,7 +408,10 @@ export class UsuarioController {
 
             const token = await generarJWT(usuario.idUsuario);
 
-            const usuarioResponse = { ...usuario.toJSON() };
+            const usuarioResponse = {
+                ...usuario.toJSON(),
+                rol: usuario.rol // Incluir el rol en la respuesta
+            };
             delete usuarioResponse.contraseña;
 
             res.json({

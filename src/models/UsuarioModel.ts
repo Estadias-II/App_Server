@@ -64,12 +64,21 @@ export class UsuarioModel extends Model {
     declare codigoPostal: string;
 
     @Column({
+        type: DataType.STRING(20),
+        allowNull: false,
+        defaultValue: 'user',
+        field: "rol"
+    })
+    declare rol: string; // 'user', 'admin', 'superadmin'
+
+    @Column({
         type: DataType.STRING(250),
         unique: true,
         allowNull: false,
         field: "usuario"
     })
     declare usuario: string;
+    
 
     @Column({
         type: DataType.STRING(250),
