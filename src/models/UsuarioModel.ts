@@ -1,3 +1,4 @@
+// backend/models/UsuarioModel.ts (actualizado)
 import { Table, Column, Model, DataType, HasMany, Default } from "sequelize-typescript";
 import { CarritoModel } from './CarritoModel';
 
@@ -64,21 +65,12 @@ export class UsuarioModel extends Model {
     declare codigoPostal: string;
 
     @Column({
-        type: DataType.STRING(20),
-        allowNull: false,
-        defaultValue: 'user',
-        field: "rol"
-    })
-    declare rol: string; // 'user', 'admin', 'superadmin'
-
-    @Column({
         type: DataType.STRING(250),
         unique: true,
         allowNull: false,
         field: "usuario"
     })
     declare usuario: string;
-    
 
     @Column({
         type: DataType.STRING(250),
@@ -86,6 +78,15 @@ export class UsuarioModel extends Model {
         field: "contraseña"
     })
     declare contraseña: string;
+
+    // NUEVO CAMPO: Rol del usuario
+    @Default('user')
+    @Column({
+        type: DataType.ENUM('user', 'admin', 'superadmin'),
+        allowNull: false,
+        field: "rol"
+    })
+    declare rol: string;
 
     @HasMany(() => CarritoModel)
     declare carritos: CarritoModel[];

@@ -1,19 +1,21 @@
+// backend/server.ts (actualizado)
 import express from 'express';
 import { Database } from './config';
-import {router as usuarioRouter} from './routes/usuarioRoutes';
+import { router as usuarioRouter } from './routes/usuarioRoutes';
+import { router as cartaGestionRouter } from './routes/cartaGestionRoutes'; // NUEVO
 import { corsOptions } from './config/cors';
 import cors from 'cors';
 
 const server = express();
 const database = new Database();
 
-//Server Configuration
+// Server Configuration
 database.connectDatabase();
 server.use(express.json());
 server.use(cors(corsOptions));
 
-//Routes
-
+// Routes
 server.use('/api/usuarios', usuarioRouter);
+server.use('/api/cartas-gestion', cartaGestionRouter); // NUEVA RUTA
 
 export default server;

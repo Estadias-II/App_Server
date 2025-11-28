@@ -1,7 +1,9 @@
+// backend/config/index.ts (actualizado)
 import dotenv from 'dotenv';
 import colors from 'colors';
 import { Sequelize } from 'sequelize-typescript';
 import { UsuarioModel, UCategoriaModel, CarritoModel } from '../models';
+import { CartaGestionModel } from '../models/CartaGestionModel'; // NUEVO
 
 export class Database {
     private readonly DB_HOST:        string;
@@ -31,17 +33,54 @@ export class Database {
                         UsuarioModel,
                         UCategoriaModel,
                         CarritoModel,
-                    ]
+                        CartaGestionModel, // NUEVO MODELO AGREGADO
+                    ],
+                    logging: false, // Opcional: desactiva logs SQL
                 }
             )
 
-            await sequelize.sync();
+            await sequelize.sync({ alter: true }); // Esto crea/actualiza tablas automáticamente
             await sequelize.authenticate();
 
             console.log(colors.green.italic.bold("Base de datos conectada exitosamente!"));
 
+            // Crear superadmin por defecto después de conectar
+            await this.createSuperAdmin();
+
         } catch (error) {
             console.log(colors.red.italic.bold(`Error al conectar la base de datos: ${error}`));
+        }
+    }
+
+    private async createSuperAdmin() {
+        try {
+            // Verificar si ya existe el superadmin
+            const superAdminExists = await UsuarioModel.findOne({
+                where: { usuario: 'superadmin' }
+            });
+
+            if (!superAdminExists) {
+                // Crear superadmin por defecto
+                const bcrypt = require('bcrypt');
+                const hashedPassword = await bcrypt.hash('password', 10);
+                
+                await UsuarioModel.create({
+                    nombres: 'Super',
+                    apellidos: 'Administrador',
+                    fechaNacimiento: new Date('2000-01-01'),
+                    correo: 'superadmin@kazokugames.com',
+                    pais: 'mx',
+                    ciudad: 'Ciudad de México',
+                    codigoPostal: '00000',
+                    usuario: 'superadmin',
+                    contraseña: hashedPassword,
+                    rol: 'superadmin'
+                });
+            } 
+            
+            console.log(colors.blue.italic("SuperAdmin ya existe en la base de datos"));
+        } catch (error) {
+            console.error(colors.red.italic.bold("Error al crear superadmin:"), error);
         }
     }
 }

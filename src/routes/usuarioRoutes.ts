@@ -5,7 +5,9 @@ import {
     updateUsuarioValidations, 
     updatePasswordValidations,
     idValidation, 
-    loginValidations 
+    loginValidations, 
+    createAdminValidations,
+    updateRoleValidations
 } from "../validations/usuarioValidations";
 import { verifyRequestErrors } from "../middlewares/verifyRequestErrors";
 import { validarJWT } from "../middlewares/validarJWT";
@@ -38,3 +40,11 @@ router.put('/:id', updateUsuarioValidations, verifyRequestErrors, UsuarioControl
 
 // DELETE - Eliminar usuario
 router.delete('/:id', idValidation, verifyRequestErrors, UsuarioController.deleteUsuario);
+
+router.get('/admin/usuarios', validarJWT, UsuarioController.getAllUsuariosAdmin);
+
+// POST - Crear nuevo admin (solo superadmin)
+router.post('/admin/crear', validarJWT, createAdminValidations, verifyRequestErrors, UsuarioController.createAdmin);
+
+// PUT - Cambiar rol de usuario (solo superadmin)
+router.put('/admin/usuario/:id/rol', validarJWT, updateRoleValidations, verifyRequestErrors, UsuarioController.updateUserRole);

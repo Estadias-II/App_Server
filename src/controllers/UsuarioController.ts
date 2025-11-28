@@ -429,4 +429,177 @@ export class UsuarioController {
             });
         }
     }
+
+    public static getAllUsuariosAdmin = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+
+            // Verificar que sea superadmin
+            if (!usuario || usuario.rol !== 'superadmin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No tienes permisos para realizar esta acción'
+                });
+            }
+
+            const usuarios = await UsuarioModel.findAll({
+                attributes: { exclude: ['contraseña'] },
+                order: [['id_usuario', 'ASC']]
+            });
+
+            res.json({
+                success: true,
+                data: usuarios
+            });
+        } catch (error) {
+            console.error('Error al obtener usuarios:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Crear nuevo admin (solo superadmin)
+    public static createAdmin = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+
+            // Verificar que sea superadmin
+            if (!usuario || usuario.rol !== 'superadmin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No tienes permisos para realizar esta acción'
+                });
+            }
+
+            const {
+                nombres,
+                apellidos,
+                fechaNacimiento,
+                correo,
+                pais,
+                ciudad,
+                codigoPostal,
+                usuario: username,
+                contraseña
+            } = req.body;
+
+            // Validaciones de existencia
+            const existeCorreo = await UsuarioModel.findOne({ where: { correo } });
+            if (existeCorreo) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El correo electrónico ya está registrado'
+                });
+            }
+
+            const existeUsuario = await UsuarioModel.findOne({ where: { usuario: username } });
+            if (existeUsuario) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El nombre de usuario ya está en uso'
+                });
+            }
+
+            const saltRounds = 10;
+            const contraseñaEncriptada = await bcrypt.hash(contraseña, saltRounds);
+
+            const nuevoAdmin = await UsuarioModel.create({
+                nombres,
+                apellidos,
+                fechaNacimiento,
+                correo,
+                pais,
+                ciudad,
+                codigoPostal,
+                usuario: username,
+                contraseña: contraseñaEncriptada,
+                rol: 'admin' // Rol por defecto para nuevos admins
+            });
+
+            const adminResponse = { ...nuevoAdmin.toJSON() };
+            delete (adminResponse as any).contraseña;
+
+            res.status(201).json({
+                success: true,
+                message: 'Administrador creado exitosamente',
+                data: adminResponse
+            });
+
+        } catch (error) {
+            console.error('Error al crear administrador:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Cambiar rol de usuario (solo superadmin)
+    public static updateUserRole = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+            const { id } = req.params;
+            const { rol } = req.body;
+
+            // Verificar que sea superadmin
+            if (!usuario || usuario.rol !== 'superadmin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No tienes permisos para realizar esta acción'
+                });
+            }
+
+            // Validar rol
+            if (!['user', 'admin', 'superadmin'].includes(rol)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Rol inválido'
+                });
+            }
+
+            const usuarioActualizar = await UsuarioModel.findByPk(id);
+            if (!usuarioActualizar) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            // NO PERMITIR cambiar el rol de otros superadmins
+            if (usuarioActualizar.rol === 'superadmin' && usuarioActualizar.idUsuario !== usuario.idUsuario) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No puedes cambiar el rol de otro Super Administrador'
+                });
+            }
+
+            // No permitir cambiar el rol del propio superadmin
+            if (usuarioActualizar.idUsuario === usuario.idUsuario && rol !== 'superadmin') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No puedes cambiar tu propio rol de Super Administrador'
+                });
+            }
+
+            await usuarioActualizar.update({ rol });
+
+            const usuarioResponse = { ...usuarioActualizar.toJSON() };
+            delete (usuarioResponse as any).contraseña;
+
+            res.json({
+                success: true,
+                message: 'Rol de usuario actualizado exitosamente',
+                data: usuarioResponse
+            });
+
+        } catch (error) {
+            console.error('Error al actualizar rol:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
 }
