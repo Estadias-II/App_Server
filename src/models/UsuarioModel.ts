@@ -1,6 +1,5 @@
 // backend/models/UsuarioModel.ts (actualizado)
-import { Table, Column, Model, DataType, HasMany, Default } from "sequelize-typescript";
-import { CarritoModel } from './CarritoModel';
+import { Table, Column, Model, DataType, Default } from "sequelize-typescript";
 
 @Table({
     tableName: "Usuarios"
@@ -87,7 +86,4 @@ export class UsuarioModel extends Model {
         field: "rol"
     })
     declare rol: string;
-
-    @HasMany(() => CarritoModel)
-    declare carritos: CarritoModel[];
 }

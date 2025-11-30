@@ -2,8 +2,10 @@
 import dotenv from 'dotenv';
 import colors from 'colors';
 import { Sequelize } from 'sequelize-typescript';
-import { UsuarioModel, UCategoriaModel, CarritoModel } from '../models';
+import { UsuarioModel } from '../models';
 import { CartaGestionModel } from '../models/CartaGestionModel'; // NUEVO
+import { PedidoModel } from '../models/PedidoModel';
+import { PedidoItemModel } from '../models/PedidoItemModel';
 
 export class Database {
     private readonly DB_HOST:        string;
@@ -31,15 +33,15 @@ export class Database {
                     host: this.DB_HOST,
                     models: [
                         UsuarioModel,
-                        UCategoriaModel,
-                        CarritoModel,
-                        CartaGestionModel, // NUEVO MODELO AGREGADO
+                        CartaGestionModel,
+                        PedidoModel,
+                        PedidoItemModel,
                     ],
                     logging: false, // Opcional: desactiva logs SQL
                 }
             )
 
-            await sequelize.sync({ alter: true }); // Esto crea/actualiza tablas automáticamente
+            await sequelize.sync(); // Esto crea/actualiza tablas automáticamente
             await sequelize.authenticate();
 
             console.log(colors.green.italic.bold("Base de datos conectada exitosamente!"));

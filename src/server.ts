@@ -2,7 +2,8 @@
 import express from 'express';
 import { Database } from './config';
 import { router as usuarioRouter } from './routes/usuarioRoutes';
-import { router as cartaGestionRouter } from './routes/cartaGestionRoutes'; // NUEVO
+import { router as cartaGestionRouter } from './routes/cartaGestionRoutes';
+import { router as pedidosRouter } from './routes/pedidoRoutes';
 import { corsOptions } from './config/cors';
 import cors from 'cors';
 
@@ -16,6 +17,7 @@ server.use(cors(corsOptions));
 
 // Routes
 server.use('/api/usuarios', usuarioRouter);
-server.use('/api/cartas-gestion', cartaGestionRouter); // NUEVA RUTA
+server.use('/api/cartas-gestion', cartaGestionRouter);
+server.use('/api/pedidos', pedidosRouter);
 
 export default server;
