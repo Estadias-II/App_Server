@@ -48,3 +48,7 @@ router.post('/admin/crear', validarJWT, createAdminValidations, verifyRequestErr
 
 // PUT - Cambiar rol de usuario (solo superadmin)
 router.put('/admin/usuario/:id/rol', validarJWT, updateRoleValidations, verifyRequestErrors, UsuarioController.updateUserRole);
+
+router.get('/admin/configuracion', validarJWT, UsuarioController.getAdminConfig);
+router.put('/admin/configuracion', validarJWT, updateUsuarioValidations, verifyRequestErrors, UsuarioController.updateAdminConfig);
+router.put('/admin/configuracion/password', validarJWT, updatePasswordValidations, verifyRequestErrors, UsuarioController.updatePassword);

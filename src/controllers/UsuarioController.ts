@@ -602,4 +602,95 @@ export class UsuarioController {
             });
         }
     }
+
+    public static getAdminConfig = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+
+            if (!usuario) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            const usuarioCompleto = await UsuarioModel.findByPk(usuario.idUsuario, {
+                attributes: { exclude: ['contraseña'] }
+            });
+
+            if (!usuarioCompleto) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            res.json({
+                success: true,
+                data: usuarioCompleto
+            });
+
+        } catch (error) {
+            console.error('Error al obtener configuración:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Actualizar configuración del admin
+    public static updateAdminConfig = async (req: Request, res: Response) => {
+        try {
+            const usuario = req.usuario;
+            const {
+                nombres,
+                apellidos,
+                fechaNacimiento,
+                pais,
+                ciudad,
+                codigoPostal
+            } = req.body;
+
+            if (!usuario) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            const usuarioActual = await UsuarioModel.findByPk(usuario.idUsuario);
+            if (!usuarioActual) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Usuario no encontrado'
+                });
+            }
+
+            await usuarioActual.update({
+                nombres: nombres || usuarioActual.nombres,
+                apellidos: apellidos || usuarioActual.apellidos,
+                fechaNacimiento: fechaNacimiento || usuarioActual.fechaNacimiento,
+                pais: pais || usuarioActual.pais,
+                ciudad: ciudad || usuarioActual.ciudad,
+                codigoPostal: codigoPostal || usuarioActual.codigoPostal
+            });
+
+            const usuarioResponse = { ...usuarioActual.toJSON() };
+            delete (usuarioResponse as any).contraseña;
+
+            res.json({
+                success: true,
+                message: 'Configuración actualizada exitosamente',
+                data: usuarioResponse
+            });
+
+        } catch (error) {
+            console.error('Error al actualizar configuración:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
 }
