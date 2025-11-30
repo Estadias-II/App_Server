@@ -6,6 +6,7 @@ import { UsuarioModel } from '../models';
 import { CartaGestionModel } from '../models/CartaGestionModel'; // NUEVO
 import { PedidoModel } from '../models/PedidoModel';
 import { PedidoItemModel } from '../models/PedidoItemModel';
+import { CotizacionModel } from '../models/CotizacionModel';
 
 export class Database {
     private readonly DB_HOST:        string;
@@ -36,6 +37,7 @@ export class Database {
                         CartaGestionModel,
                         PedidoModel,
                         PedidoItemModel,
+                        CotizacionModel,
                     ],
                     logging: false, // Opcional: desactiva logs SQL
                 }
