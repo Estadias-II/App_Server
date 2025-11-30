@@ -1,10 +1,11 @@
-// backend/routes/cartaGestionRoutes.ts
+// backend/routes/cartaGestionRoutes.ts - ACTUALIZADO
 import { Router } from "express";
 import { CartaGestionController } from "../controllers/CartaGestionController";
 import { validarJWT } from "../middlewares/validarJWT";
 import { 
     upsertCartaGestionValidations, 
     updateStockValidations,
+    updatePrecioValidations,
     idGestionValidation 
 } from "../validations/cartaGestionValidations";
 import { verifyRequestErrors } from "../middlewares/verifyRequestErrors";
@@ -28,6 +29,9 @@ router.post('/', upsertCartaGestionValidations, verifyRequestErrors, CartaGestio
 
 // PUT - Actualizar stock de una carta
 router.put('/:idGestion/stock', updateStockValidations, verifyRequestErrors, CartaGestionController.updateStock);
+
+// PUT - Actualizar precio personalizado
+router.put('/:idGestion/precio', updatePrecioValidations, verifyRequestErrors, CartaGestionController.updatePrecio);
 
 // PATCH - Toggle activa_venta
 router.patch('/:idGestion/toggle-venta', idGestionValidation, verifyRequestErrors, CartaGestionController.toggleActivaVenta);

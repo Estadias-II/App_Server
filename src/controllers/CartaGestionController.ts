@@ -1,4 +1,4 @@
-// backend/controllers/CartaGestionController.ts
+// backend/controllers/CartaGestionController.ts - ACTUALIZADO
 import { Request, Response } from "express";
 import { CartaGestionModel } from "../models/CartaGestionModel";
 
@@ -62,6 +62,7 @@ export class CartaGestionController {
                 activaVenta, 
                 stockLocal, 
                 precioPersonalizado,
+                precioScryfall,
                 categoriaPersonalizada 
             } = req.body;
 
@@ -76,6 +77,7 @@ export class CartaGestionController {
                 activaVenta: activaVenta !== undefined ? activaVenta : true,
                 stockLocal: stockLocal || 0,
                 precioPersonalizado: precioPersonalizado || null,
+                precioScryfall: precioScryfall || null,
                 categoriaPersonalizada: categoriaPersonalizada || null,
                 estadoStock
             });
@@ -87,6 +89,38 @@ export class CartaGestionController {
             });
         } catch (error) {
             console.error('Error al crear/actualizar carta de gestión:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Actualizar precio personalizado
+    public static updatePrecio = async (req: Request, res: Response) => {
+        try {
+            const { idGestion } = req.params;
+            const { precioPersonalizado } = req.body;
+
+            const carta = await CartaGestionModel.findByPk(idGestion);
+            if (!carta) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Carta no encontrada en gestión'
+                });
+            }
+
+            await carta.update({
+                precioPersonalizado: precioPersonalizado !== undefined ? precioPersonalizado : null
+            });
+
+            res.json({
+                success: true,
+                message: 'Precio actualizado correctamente',
+                data: carta
+            });
+        } catch (error) {
+            console.error('Error al actualizar precio:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor'

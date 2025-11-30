@@ -1,4 +1,4 @@
-// backend/validations/cartaGestionValidations.ts
+// backend/validations/cartaGestionValidations.ts - ACTUALIZADO
 import { body, param } from "express-validator";
 
 export const upsertCartaGestionValidations = [
@@ -22,6 +22,10 @@ export const upsertCartaGestionValidations = [
         .optional()
         .isFloat({ min: 0 }).withMessage('El precio personalizado debe ser un número positivo'),
     
+    body('precioScryfall')
+        .optional()
+        .isFloat({ min: 0 }).withMessage('El precio Scryfall debe ser un número positivo'),
+    
     body('categoriaPersonalizada')
         .optional()
         .isLength({ max: 100 }).withMessage('La categoría no puede tener más de 100 caracteres')
@@ -34,6 +38,15 @@ export const updateStockValidations = [
     body('stockLocal')
         .notEmpty().withMessage('El stock es requerido')
         .isInt({ min: 0 }).withMessage('El stock debe ser un número entero positivo')
+];
+
+export const updatePrecioValidations = [
+    param('idGestion')
+        .isInt({ min: 1 }).withMessage('ID de gestión debe ser un número entero positivo'),
+    
+    body('precioPersonalizado')
+        .optional()
+        .isFloat({ min: 0 }).withMessage('El precio personalizado debe ser un número positivo')
 ];
 
 export const idGestionValidation = [

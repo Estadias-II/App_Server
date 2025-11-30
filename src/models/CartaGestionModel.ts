@@ -1,4 +1,4 @@
-// backend/models/CartaGestionModel.ts
+// backend/models/CartaGestionModel.ts - ACTUALIZADO
 import { Table, Column, Model, DataType, Default, CreatedAt, UpdatedAt } from "sequelize-typescript";
 
 @Table({
@@ -50,6 +50,13 @@ export class CartaGestionModel extends Model {
         field: "precio_personalizado"
     })
     declare precioPersonalizado: number;
+
+    @Column({
+        type: DataType.DECIMAL(10, 2),
+        allowNull: true,
+        field: "precio_scryfall"
+    })
+    declare precioScryfall: number;
 
     @Column({
         type: DataType.STRING(100),
