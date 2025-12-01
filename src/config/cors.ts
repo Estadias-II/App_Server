@@ -1,6 +1,10 @@
 import { CorsOptions } from "cors"
+import dotenv from 'dotenv';
 
-const whitelist = ["http://localhost:5173"];
+
+dotenv.config();
+
+const whitelist = [process.env.FRONTEND_URL];
 
 export const corsOptions: CorsOptions = {
     origin: function (origin: string | undefined, callback) {

@@ -1,4 +1,26 @@
+// backend/validations/usuarioValidations.ts
 import { body, param } from "express-validator";
+
+// Función para validar código postal de forma flexible
+const validarCodigoPostalFlexible = (value: string) => {
+  if (!value) return false;
+  
+  // Limpiar y normalizar
+  const codigoLimpio = value.trim().toUpperCase();
+  
+  // Validación básica: longitud entre 3 y 12 caracteres
+  if (codigoLimpio.length < 3 || codigoLimpio.length > 12) {
+    return false;
+  }
+  
+  // Validación de caracteres permitidos
+  const caracteresValidos = /^[A-Z0-9\-\s]*$/;
+  if (!caracteresValidos.test(codigoLimpio)) {
+    return false;
+  }
+  
+  return true;
+};
 
 export const createUsuarioValidations = [
     body('nombres')
@@ -28,7 +50,8 @@ export const createUsuarioValidations = [
     
     body('codigoPostal')
         .notEmpty().withMessage('El código postal es requerido')
-        .isLength({ max: 45 }).withMessage('El código postal no puede tener más de 45 caracteres'),
+        .isLength({ max: 12 }).withMessage('El código postal no puede tener más de 12 caracteres')
+        .custom(validarCodigoPostalFlexible).withMessage('Formato de código postal inválido'),
     
     body('usuario')
         .notEmpty().withMessage('El nombre de usuario es requerido')
@@ -36,7 +59,7 @@ export const createUsuarioValidations = [
     
     body('contraseña')
         .notEmpty().withMessage('La contraseña es requerida')
-        .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
+        .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
         .isLength({ max: 250 }).withMessage('La contraseña no puede tener más de 250 caracteres')
 ];
 
@@ -63,7 +86,8 @@ export const updateUsuarioValidations = [
     
     body('codigoPostal')
         .optional()
-        .isLength({ max: 45 }).withMessage('El código postal no puede tener más de 45 caracteres')
+        .isLength({ max: 12 }).withMessage('El código postal no puede tener más de 12 caracteres')
+        .custom(validarCodigoPostalFlexible).withMessage('Formato de código postal inválido')
 ];
 
 export const updatePasswordValidations = [
@@ -72,7 +96,7 @@ export const updatePasswordValidations = [
     
     body('nuevaContraseña')
         .notEmpty().withMessage('La nueva contraseña es requerida')
-        .isLength({ min: 6 }).withMessage('La nueva contraseña debe tener al menos 6 caracteres')
+        .isLength({ min: 8 }).withMessage('La nueva contraseña debe tener al menos 8 caracteres')
         .isLength({ max: 250 }).withMessage('La nueva contraseña no puede tener más de 250 caracteres'),
     
     body('confirmarContraseña')
@@ -127,7 +151,8 @@ export const createAdminValidations = [
     
     body('codigoPostal')
         .notEmpty().withMessage('El código postal es requerido')
-        .isLength({ max: 45 }).withMessage('El código postal no puede tener más de 45 caracteres'),
+        .isLength({ max: 12 }).withMessage('El código postal no puede tener más de 12 caracteres')
+        .custom(validarCodigoPostalFlexible).withMessage('Formato de código postal inválido'),
     
     body('usuario')
         .notEmpty().withMessage('El nombre de usuario es requerido')
@@ -135,7 +160,7 @@ export const createAdminValidations = [
     
     body('contraseña')
         .notEmpty().withMessage('La contraseña es requerida')
-        .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
+        .isLength({ min: 8 }).withMessage('La contraseña debe tener al menos 8 caracteres')
         .isLength({ max: 250 }).withMessage('La contraseña no puede tener más de 250 caracteres')
 ];
 
