@@ -17,7 +17,8 @@ export class CartaGestionModel extends Model {
     @Column({
         type: DataType.STRING(100),
         allowNull: false,
-        field: "id_carta_scryfall"
+        field: "id_carta_scryfall",
+        unique: true,
     })
     declare idCartaScryfall: string;
 

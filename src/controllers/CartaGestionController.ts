@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { CartaGestionModel } from "../models/CartaGestionModel";
 
 export class CartaGestionController {
-    
+
     // Obtener todas las cartas con gestión
     public static getAllCartasGestion = async (req: Request, res: Response) => {
         try {
@@ -28,7 +28,7 @@ export class CartaGestionController {
     public static getCartaGestion = async (req: Request, res: Response) => {
         try {
             const { idScryfall } = req.params;
-            
+
             const carta = await CartaGestionModel.findOne({
                 where: { idCartaScryfall: idScryfall }
             });
@@ -56,39 +56,58 @@ export class CartaGestionController {
     // Crear o actualizar gestión de carta
     public static upsertCartaGestion = async (req: Request, res: Response) => {
         try {
-            const { 
-                idCartaScryfall, 
-                nombreCarta, 
-                activaVenta, 
-                stockLocal, 
+            const {
+                idCartaScryfall,
+                nombreCarta,
+                activaVenta,
+                stockLocal,
                 precioPersonalizado,
                 precioScryfall,
-                categoriaPersonalizada 
+                categoriaPersonalizada
             } = req.body;
+
+            if (!idCartaScryfall) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El idCartaScryfall es requerido'
+                });
+            }
 
             // Determinar estado del stock
             let estadoStock = 'normal';
             if (stockLocal < 5) estadoStock = 'bajo';
             else if (stockLocal < 15) estadoStock = 'medio';
 
-            const [carta, created] = await CartaGestionModel.upsert({
-                idCartaScryfall,
-                nombreCarta,
-                activaVenta: activaVenta !== undefined ? activaVenta : true,
-                stockLocal: stockLocal || 0,
-                precioPersonalizado: precioPersonalizado || null,
-                precioScryfall: precioScryfall || null,
-                categoriaPersonalizada: categoriaPersonalizada || null,
-                estadoStock
+            // Buscar o crear (solo crea si no existe)
+            const [carta, created] = await CartaGestionModel.findOrCreate({
+                where: { idCartaScryfall },
+                defaults: {
+                    nombreCarta,
+                    activaVenta: activaVenta !== undefined ? activaVenta : true,
+                    stockLocal: stockLocal || 0,
+                    precioPersonalizado: precioPersonalizado || null,
+                    precioScryfall: precioScryfall || null,
+                    categoriaPersonalizada: categoriaPersonalizada || null,
+                    estadoStock
+                }
             });
 
-            res.json({
+            if (!created) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'La carta ya existe en la gestión',
+                    data: carta
+                });
+            }
+
+            res.status(201).json({
                 success: true,
-                message: created ? 'Carta agregada a gestión' : 'Carta actualizada en gestión',
+                message: 'Carta agregada a gestión exitosamente',
                 data: carta
             });
+
         } catch (error) {
-            console.error('Error al crear/actualizar carta de gestión:', error);
+            console.error('Error al crear carta de gestión:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor'
@@ -132,9 +151,9 @@ export class CartaGestionController {
     public static getCartasStockBajo = async (req: Request, res: Response) => {
         try {
             const cartas = await CartaGestionModel.findAll({
-                where: { 
+                where: {
                     estadoStock: 'bajo',
-                    activaVenta: true 
+                    activaVenta: true
                 },
                 order: [['stock_local', 'ASC']]
             });

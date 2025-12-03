@@ -1,4 +1,3 @@
-// backend/controllers/PedidoController.ts
 import { Request, Response } from "express";
 import { PedidoModel } from "../models/PedidoModel";
 import { PedidoItemModel } from "../models/PedidoItemModel";
@@ -51,21 +50,29 @@ export class PedidoController {
                         });
                     }
 
+                    // OBTENER PRECIO CORRECTO - Priorizar precio personalizado
+                    let precioUnitario = 0;
+                    
+                    if (cartaGestion?.precioPersonalizado !== null && cartaGestion?.precioPersonalizado !== undefined) {
+                        precioUnitario = Number(cartaGestion.precioPersonalizado);
+                    } else if (cartaGestion?.precioScryfall !== null && cartaGestion?.precioScryfall !== undefined) {
+                        precioUnitario = Number(cartaGestion.precioScryfall);
+                    } else {
+                        // Usar precio de Scryfall como último recurso
+                        precioUnitario = parseFloat(
+                            item.card.prices?.usd ||
+                            item.card.prices?.usd_foil ||
+                            item.card.prices?.eur || '0'
+                        );
+                    }
+
                     return PedidoItemModel.create({
                         idPedido: pedido.idPedido,
                         idCartaScryfall: item.card.id,
                         nombreCarta: item.card.name,
-                        precioUnitario: parseFloat(
-                            item.card.prices?.usd ||
-                            item.card.prices?.usd_foil ||
-                            item.card.prices?.eur || '0'
-                        ),
+                        precioUnitario: precioUnitario,
                         cantidad: item.quantity,
-                        subtotal: parseFloat(
-                            item.card.prices?.usd ||
-                            item.card.prices?.usd_foil ||
-                            item.card.prices?.eur || '0'
-                        ) * item.quantity
+                        subtotal: precioUnitario * item.quantity
                     });
                 })
             );
