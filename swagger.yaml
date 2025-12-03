@@ -1,0 +1,1355 @@
+openapi: 3.0.0
+info:
+  title: API Kazoku Games - Servidor de Gestión de Cartas
+  description: |
+    API para la gestión de usuarios, cartas, pedidos y cotizaciones de Kazoku Games.
+    La URL base del servidor es: https://app-server-vgz4.onrender.com
+    
+    ## Autenticación
+    Todos los endpoints (excepto registro y login) requieren autenticación JWT.
+    Incluir el token en el header: `Authorization: Bearer {token}`
+    
+    ## Roles de Usuario
+    - **user**: Usuario normal (compra, cotizaciones)
+    - **admin**: Administrador (gestión de cartas, pedidos, cotizaciones)
+    - **superadmin**: Super administrador (gestión de usuarios y todo el sistema)
+  version: 1.0.0
+  contact:
+    name: Soporte Kazoku Games
+    email: soporte@kazokugames.com
+servers:
+  - url: https://app-server-vgz4.onrender.com/api
+    description: Servidor de producción
+
+tags:
+  - name: Autenticación
+    description: Endpoints de autenticación y registro de usuarios
+  - name: Usuarios
+    description: Gestión de usuarios y perfiles
+  - name: Cartas de Gestión
+    description: Gestión de inventario y precios de cartas
+  - name: Pedidos
+    description: Gestión de pedidos de compra
+  - name: Cotizaciones
+    description: Gestión de solicitudes de cotización
+
+paths:
+  # ========== AUTENTICACIÓN ==========
+  /usuarios:
+    post:
+      tags: [Autenticación]
+      summary: Registrar nuevo usuario
+      description: Crea una nueva cuenta de usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nombres
+                - apellidos
+                - fechaNacimiento
+                - correo
+                - pais
+                - ciudad
+                - codigoPostal
+                - usuario
+                - contraseña
+              properties:
+                nombres:
+                  type: string
+                  maxLength: 250
+                  example: "Juan"
+                apellidos:
+                  type: string
+                  maxLength: 250
+                  example: "Pérez"
+                fechaNacimiento:
+                  type: string
+                  format: date
+                  example: "1990-01-01"
+                correo:
+                  type: string
+                  format: email
+                  example: "juan@example.com"
+                pais:
+                  type: string
+                  maxLength: 100
+                  example: "mx"
+                ciudad:
+                  type: string
+                  maxLength: 100
+                  example: "Ciudad de México"
+                codigoPostal:
+                  type: string
+                  maxLength: 12
+                  example: "01000"
+                usuario:
+                  type: string
+                  maxLength: 250
+                  example: "juanperez"
+                contraseña:
+                  type: string
+                  minLength: 8
+                  maxLength: 250
+                  example: "password123"
+      responses:
+        201:
+          description: Usuario creado exitosamente
+        400:
+          description: Error en los datos de entrada
+        409:
+          description: Correo o usuario ya existente
+        500:
+          description: Error interno del servidor
+
+  /usuarios/login:
+    post:
+      tags: [Autenticación]
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve un token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - correo
+                - contraseña
+              properties:
+                correo:
+                  type: string
+                  format: email
+                  example: "superadmin@kazokugames.com"
+                contraseña:
+                  type: string
+                  example: "password"
+      responses:
+        200:
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Login exitoso"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  data:
+                    $ref: '#/components/schemas/UsuarioPerfil'
+        401:
+          description: Credenciales inválidas
+        500:
+          description: Error interno del servidor
+
+  # ========== USUARIOS ==========
+  /usuarios/perfil:
+    get:
+      tags: [Usuarios]
+      summary: Obtener perfil básico
+      description: Obtiene el perfil básico del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Perfil obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UsuarioPerfilBasico'
+        401:
+          description: No autenticado
+        404:
+          description: Usuario no encontrado
+        500:
+          description: Error interno del servidor
+    put:
+      tags: [Usuarios]
+      summary: Actualizar perfil
+      description: Actualiza los datos del perfil del usuario autenticado
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombres:
+                  type: string
+                  example: "Juan"
+                apellidos:
+                  type: string
+                  example: "Pérez"
+                fechaNacimiento:
+                  type: string
+                  format: date
+                  example: "1990-01-01"
+                pais:
+                  type: string
+                  example: "mx"
+                ciudad:
+                  type: string
+                  example: "Ciudad de México"
+                codigoPostal:
+                  type: string
+                  example: "01000"
+      responses:
+        200:
+          description: Perfil actualizado exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        404:
+          description: Usuario no encontrado
+        500:
+          description: Error interno del servidor
+
+  /usuarios/perfil/completo:
+    get:
+      tags: [Usuarios]
+      summary: Obtener perfil completo
+      description: Obtiene todos los datos del perfil del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Perfil completo obtenido
+        401:
+          description: No autenticado
+        404:
+          description: Usuario no encontrado
+        500:
+          description: Error interno del servidor
+
+  /usuarios/perfil/password:
+    put:
+      tags: [Usuarios]
+      summary: Cambiar contraseña
+      description: Cambia la contraseña del usuario autenticado
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - contraseñaActual
+                - nuevaContraseña
+                - confirmarContraseña
+              properties:
+                contraseñaActual:
+                  type: string
+                  example: "oldpassword"
+                nuevaContraseña:
+                  type: string
+                  minLength: 8
+                  example: "newpassword123"
+                confirmarContraseña:
+                  type: string
+                  example: "newpassword123"
+      responses:
+        200:
+          description: Contraseña cambiada exitosamente
+        400:
+          description: Contraseña actual incorrecta o datos inválidos
+        401:
+          description: No autenticado
+        404:
+          description: Usuario no encontrado
+        500:
+          description: Error interno del servidor
+
+  # ========== ADMINISTRACIÓN DE USUARIOS ==========
+  /usuarios/admin/usuarios:
+    get:
+      tags: [Usuarios]
+      summary: Obtener todos los usuarios (Superadmin)
+      description: Lista todos los usuarios del sistema (solo para superadmin)
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de usuarios obtenida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UsuarioCompleto'
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de superadmin
+        500:
+          description: Error interno del servidor
+
+  /usuarios/admin/crear:
+    post:
+      tags: [Usuarios]
+      summary: Crear nuevo administrador (Superadmin)
+      description: Crea un nuevo usuario con rol de administrador
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearUsuarioRequest'
+      responses:
+        201:
+          description: Administrador creado exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de superadmin
+        409:
+          description: Correo o usuario ya existente
+        500:
+          description: Error interno del servidor
+
+  /usuarios/admin/usuario/{id}/rol:
+    put:
+      tags: [Usuarios]
+      summary: Cambiar rol de usuario (Superadmin)
+      description: Cambia el rol de un usuario específico
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rol
+              properties:
+                rol:
+                  type: string
+                  enum: [user, admin, superadmin]
+                  example: "admin"
+      responses:
+        200:
+          description: Rol actualizado exitosamente
+        400:
+          description: Rol inválido o datos incorrectos
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de superadmin
+        404:
+          description: Usuario no encontrado
+        500:
+          description: Error interno del servidor
+
+  /usuarios/admin/configuracion:
+    get:
+      tags: [Usuarios]
+      summary: Obtener configuración de admin
+      description: Obtiene la configuración del perfil de administrador
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Configuración obtenida
+        401:
+          description: No autenticado
+        404:
+          description: Usuario no encontrado
+        500:
+          description: Error interno del servidor
+    put:
+      tags: [Usuarios]
+      summary: Actualizar configuración de admin
+      description: Actualiza la configuración del perfil de administrador
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActualizarPerfilRequest'
+      responses:
+        200:
+          description: Configuración actualizada
+        401:
+          description: No autenticado
+        404:
+          description: Usuario no encontrado
+        500:
+          description: Error interno del servidor
+
+  # ========== CARTAS DE GESTIÓN ==========
+  /cartas-gestion:
+    get:
+      tags: [Cartas de Gestión]
+      summary: Obtener todas las cartas con gestión
+      description: Retorna todas las cartas en el sistema de gestión
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de cartas obtenida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CartaGestion'
+        401:
+          description: No autenticado
+        500:
+          description: Error interno del servidor
+    post:
+      tags: [Cartas de Gestión]
+      summary: Crear o actualizar carta de gestión
+      description: Agrega una nueva carta al sistema de gestión o la actualiza si existe
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearCartaGestionRequest'
+      responses:
+        201:
+          description: Carta agregada exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        409:
+          description: La carta ya existe
+        500:
+          description: Error interno del servidor
+
+  /cartas-gestion/{idScryfall}:
+    get:
+      tags: [Cartas de Gestión]
+      summary: Obtener gestión de carta específica
+      description: Obtiene la información de gestión de una carta por su ID de Scryfall
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idScryfall
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID de la carta en Scryfall
+      responses:
+        200:
+          description: Información de la carta obtenida
+        401:
+          description: No autenticado
+        404:
+          description: Carta no encontrada
+        500:
+          description: Error interno del servidor
+
+  /cartas-gestion/stock/bajo:
+    get:
+      tags: [Cartas de Gestión]
+      summary: Obtener cartas con stock bajo
+      description: Retorna todas las cartas con stock bajo (estado "bajo")
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de cartas con stock bajo
+        401:
+          description: No autenticado
+        500:
+          description: Error interno del servidor
+
+  /cartas-gestion/{idGestion}/stock:
+    put:
+      tags: [Cartas de Gestión]
+      summary: Actualizar stock de carta
+      description: Actualiza el stock local de una carta específica
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idGestion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de gestión de la carta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - stockLocal
+              properties:
+                stockLocal:
+                  type: integer
+                  minimum: 0
+                  example: 10
+      responses:
+        200:
+          description: Stock actualizado exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        404:
+          description: Carta no encontrada
+        500:
+          description: Error interno del servidor
+
+  /cartas-gestion/{idGestion}/precio:
+    put:
+      tags: [Cartas de Gestión]
+      summary: Actualizar precio personalizado
+      description: Actualiza el precio personalizado de una carta
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idGestion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de gestión de la carta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                precioPersonalizado:
+                  type: number
+                  minimum: 0
+                  example: 25.50
+      responses:
+        200:
+          description: Precio actualizado exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        404:
+          description: Carta no encontrada
+        500:
+          description: Error interno del servidor
+
+  /cartas-gestion/{idGestion}/toggle-venta:
+    patch:
+      tags: [Cartas de Gestión]
+      summary: Activar/desactivar venta de carta
+      description: Cambia el estado de activa_venta de una carta
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idGestion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de gestión de la carta
+      responses:
+        200:
+          description: Estado de venta actualizado
+        401:
+          description: No autenticado
+        404:
+          description: Carta no encontrada
+        500:
+          description: Error interno del servidor
+
+  # ========== PEDIDOS ==========
+  /pedidos:
+    post:
+      tags: [Pedidos]
+      summary: Crear pedido desde carrito
+      description: Crea un nuevo pedido desde los items del carrito de compras
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearPedidoRequest'
+      responses:
+        201:
+          description: Pedido creado exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        500:
+          description: Error interno del servidor
+
+  /pedidos/mis-pedidos:
+    get:
+      tags: [Pedidos]
+      summary: Obtener pedidos del usuario
+      description: Obtiene todos los pedidos del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de pedidos del usuario
+        401:
+          description: No autenticado
+        500:
+          description: Error interno del servidor
+
+  /pedidos/admin/todos:
+    get:
+      tags: [Pedidos]
+      summary: Obtener todos los pedidos (Admin)
+      description: Obtiene todos los pedidos del sistema con paginación
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Número de página
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Items por página
+        - name: estado
+          in: query
+          schema:
+            type: string
+            enum: [pendiente, confirmado, en_proceso, completado, cancelado]
+          description: Filtrar por estado
+      responses:
+        200:
+          description: Lista paginada de pedidos
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de administrador
+        500:
+          description: Error interno del servidor
+
+  /pedidos/admin/{idPedido}/estado:
+    put:
+      tags: [Pedidos]
+      summary: Actualizar estado de pedido (Admin)
+      description: Actualiza el estado de un pedido específico
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idPedido
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - estado
+              properties:
+                estado:
+                  type: string
+                  enum: [pendiente, confirmado, en_proceso, completado, cancelado]
+                  example: "completado"
+                notas:
+                  type: string
+                  example: "Pedido entregado exitosamente"
+      responses:
+        200:
+          description: Estado actualizado exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de administrador
+        404:
+          description: Pedido no encontrado
+        500:
+          description: Error interno del servidor
+
+  /pedidos/admin/estadisticas:
+    get:
+      tags: [Pedidos]
+      summary: Obtener estadísticas de pedidos (Admin)
+      description: Obtiene estadísticas generales de los pedidos
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Estadísticas obtenidas
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de administrador
+        500:
+          description: Error interno del servidor
+
+  # ========== COTIZACIONES ==========
+  /cotizaciones/solicitar:
+    post:
+      tags: [Cotizaciones]
+      summary: Solicitar cotización
+      description: Crea una nueva solicitud de cotización para una carta
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idCartaScryfall
+                - nombreCarta
+              properties:
+                idCartaScryfall:
+                  type: string
+                  example: "abc123"
+                nombreCarta:
+                  type: string
+                  example: "Black Lotus"
+                notasCliente:
+                  type: string
+                  example: "Necesito esta carta para un torneo"
+      responses:
+        201:
+          description: Solicitud de cotización creada
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        500:
+          description: Error interno del servidor
+
+  /cotizaciones/mis-cotizaciones:
+    get:
+      tags: [Cotizaciones]
+      summary: Obtener cotizaciones del usuario
+      description: Obtiene todas las cotizaciones del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de cotizaciones del usuario
+        401:
+          description: No autenticado
+        500:
+          description: Error interno del servidor
+
+  /cotizaciones/{idCotizacion}/responder:
+    put:
+      tags: [Cotizaciones]
+      summary: Responder a cotización
+      description: Acepta o rechaza una cotización que ha sido cotizada
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idCotizacion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la cotización
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accion
+              properties:
+                accion:
+                  type: string
+                  enum: [aceptar, rechazar]
+                  example: "aceptar"
+      responses:
+        200:
+          description: Respuesta registrada exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        404:
+          description: Cotización no encontrada
+        500:
+          description: Error interno del servidor
+
+  /cotizaciones/admin/todas:
+    get:
+      tags: [Cotizaciones]
+      summary: Obtener todas las cotizaciones (Admin)
+      description: Obtiene todas las cotizaciones del sistema con paginación
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Número de página
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Items por página
+        - name: estado
+          in: query
+          schema:
+            type: string
+            enum: [pendiente, cotizada, aceptada, rechazada, completada, cancelada]
+          description: Filtrar por estado
+      responses:
+        200:
+          description: Lista paginada de cotizaciones
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de administrador
+        500:
+          description: Error interno del servidor
+
+  /cotizaciones/admin/{idCotizacion}:
+    put:
+      tags: [Cotizaciones]
+      summary: Actualizar cotización (Admin)
+      description: Actualiza una cotización (precio, días de entrega, estado)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idCotizacion
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la cotización
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                precioCotizado:
+                  type: number
+                  minimum: 0
+                  example: 150.75
+                diasEntrega:
+                  type: integer
+                  minimum: 1
+                  example: 5
+                notasAdministrador:
+                  type: string
+                  example: "Carta disponible en stock"
+                estado:
+                  type: string
+                  enum: [pendiente, cotizada, aceptada, rechazada, completada, cancelada]
+                  example: "cotizada"
+      responses:
+        200:
+          description: Cotización actualizada exitosamente
+        400:
+          description: Error en los datos de entrada
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de administrador
+        404:
+          description: Cotización no encontrada
+        500:
+          description: Error interno del servidor
+
+  /cotizaciones/admin/estadisticas:
+    get:
+      tags: [Cotizaciones]
+      summary: Obtener estadísticas de cotizaciones (Admin)
+      description: Obtiene estadísticas generales de las cotizaciones
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Estadísticas obtenidas
+        401:
+          description: No autenticado
+        403:
+          description: No tiene permisos de administrador
+        500:
+          description: Error interno del servidor
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ========== USUARIOS ==========
+    UsuarioPerfilBasico:
+      type: object
+      properties:
+        idUsuario:
+          type: integer
+          example: 1
+        nombres:
+          type: string
+          example: "Juan"
+        apellidos:
+          type: string
+          example: "Pérez"
+        rol:
+          type: string
+          enum: [user, admin, superadmin]
+          example: "user"
+
+    UsuarioPerfil:
+      type: object
+      properties:
+        idUsuario:
+          type: integer
+          example: 1
+        nombres:
+          type: string
+          example: "Juan"
+        apellidos:
+          type: string
+          example: "Pérez"
+        fechaNacimiento:
+          type: string
+          format: date
+          example: "1990-01-01"
+        correo:
+          type: string
+          format: email
+          example: "juan@example.com"
+        pais:
+          type: string
+          example: "mx"
+        ciudad:
+          type: string
+          example: "Ciudad de México"
+        codigoPostal:
+          type: string
+          example: "01000"
+        usuario:
+          type: string
+          example: "juanperez"
+        rol:
+          type: string
+          enum: [user, admin, superadmin]
+          example: "user"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UsuarioCompleto:
+      allOf:
+        - $ref: '#/components/schemas/UsuarioPerfil'
+        - type: object
+          properties:
+            idUsuario:
+              type: integer
+              example: 1
+
+    CrearUsuarioRequest:
+      type: object
+      required:
+        - nombres
+        - apellidos
+        - fechaNacimiento
+        - correo
+        - pais
+        - ciudad
+        - codigoPostal
+        - usuario
+        - contraseña
+      properties:
+        nombres:
+          type: string
+          maxLength: 250
+          example: "Juan"
+        apellidos:
+          type: string
+          maxLength: 250
+          example: "Pérez"
+        fechaNacimiento:
+          type: string
+          format: date
+          example: "1990-01-01"
+        correo:
+          type: string
+          format: email
+          example: "juan@example.com"
+        pais:
+          type: string
+          maxLength: 100
+          example: "mx"
+        ciudad:
+          type: string
+          maxLength: 100
+          example: "Ciudad de México"
+        codigoPostal:
+          type: string
+          maxLength: 12
+          example: "01000"
+        usuario:
+          type: string
+          maxLength: 250
+          example: "juanperez"
+        contraseña:
+          type: string
+          minLength: 8
+          maxLength: 250
+          example: "password123"
+
+    ActualizarPerfilRequest:
+      type: object
+      properties:
+        nombres:
+          type: string
+          example: "Juan"
+        apellidos:
+          type: string
+          example: "Pérez"
+        fechaNacimiento:
+          type: string
+          format: date
+          example: "1990-01-01"
+        pais:
+          type: string
+          example: "mx"
+        ciudad:
+          type: string
+          example: "Ciudad de México"
+        codigoPostal:
+          type: string
+          example: "01000"
+
+    # ========== CARTAS DE GESTIÓN ==========
+    CartaGestion:
+      type: object
+      properties:
+        idGestion:
+          type: integer
+          example: 1
+        idCartaScryfall:
+          type: string
+          example: "abc123def456"
+        nombreCarta:
+          type: string
+          example: "Black Lotus"
+        activaVenta:
+          type: boolean
+          example: true
+        stockLocal:
+          type: integer
+          example: 15
+        precioPersonalizado:
+          type: number
+          example: 250.00
+        precioScryfall:
+          type: number
+          example: 235.50
+        categoriaPersonalizada:
+          type: string
+          example: "Premium"
+        estadoStock:
+          type: string
+          enum: [bajo, medio, normal]
+          example: "normal"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CrearCartaGestionRequest:
+      type: object
+      required:
+        - idCartaScryfall
+        - nombreCarta
+      properties:
+        idCartaScryfall:
+          type: string
+          maxLength: 100
+          example: "abc123def456"
+        nombreCarta:
+          type: string
+          maxLength: 500
+          example: "Black Lotus"
+        activaVenta:
+          type: boolean
+          example: true
+        stockLocal:
+          type: integer
+          minimum: 0
+          example: 10
+        precioPersonalizado:
+          type: number
+          minimum: 0
+          example: 250.00
+        precioScryfall:
+          type: number
+          minimum: 0
+          example: 235.50
+        categoriaPersonalizada:
+          type: string
+          maxLength: 100
+          example: "Premium"
+
+    # ========== PEDIDOS ==========
+    CrearPedidoRequest:
+      type: object
+      required:
+        - items
+        - total
+        - totalItems
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              card:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  prices:
+                    type: object
+                    properties:
+                      usd:
+                        type: string
+                      usd_foil:
+                        type: string
+                      eur:
+                        type: string
+              quantity:
+                type: integer
+          example:
+            - card:
+                id: "abc123"
+                name: "Black Lotus"
+                prices:
+                  usd: "250.00"
+              quantity: 1
+        total:
+          type: number
+          example: 250.00
+        totalItems:
+          type: integer
+          example: 1
+        notas:
+          type: string
+          example: "Entrega rápida por favor"
+
+    Pedido:
+      type: object
+      properties:
+        idPedido:
+          type: integer
+          example: 1
+        idUsuario:
+          type: integer
+          example: 1
+        numeroPedido:
+          type: string
+          example: "PED-1234567890-abc123"
+        total:
+          type: number
+          example: 250.00
+        totalItems:
+          type: integer
+          example: 1
+        estado:
+          type: string
+          enum: [pendiente, confirmado, en_proceso, completado, cancelado]
+          example: "pendiente"
+        notas:
+          type: string
+          example: "Pedido en proceso"
+        archivoTicket:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PedidoItem'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PedidoItem:
+      type: object
+      properties:
+        idItem:
+          type: integer
+          example: 1
+        idPedido:
+          type: integer
+          example: 1
+        idCartaScryfall:
+          type: string
+          example: "abc123"
+        nombreCarta:
+          type: string
+          example: "Black Lotus"
+        precioUnitario:
+          type: number
+          example: 250.00
+        cantidad:
+          type: integer
+          example: 1
+        subtotal:
+          type: number
+          example: 250.00
+
+    # ========== COTIZACIONES ==========
+    Cotizacion:
+      type: object
+      properties:
+        idCotizacion:
+          type: integer
+          example: 1
+        idUsuario:
+          type: integer
+          example: 1
+        idCartaScryfall:
+          type: string
+          example: "abc123"
+        nombreCarta:
+          type: string
+          example: "Black Lotus"
+        notasCliente:
+          type: string
+          example: "Necesito para torneo"
+        precioCotizado:
+          type: number
+          example: 150.75
+        diasEntrega:
+          type: integer
+          example: 5
+        notasAdministrador:
+          type: string
+          example: "Disponible en stock"
+        estado:
+          type: string
+          enum: [pendiente, cotizada, aceptada, rechazada, completada, cancelada]
+          example: "pendiente"
+        fechaCotizacion:
+          type: string
+          format: date-time
+        fechaRespuesta:
+          type: string
+          format: date-time
+        fechaCompletada:
+          type: string
+          format: date-time
+        usuario:
+          $ref: '#/components/schemas/UsuarioPerfilBasico'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ========== RESPUESTAS COMUNES ==========
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error en los datos de entrada"
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operación exitosa"
+
+    PaginationResponse:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 5
+        totalItems:
+          type: integer
+          example: 100
+        itemsPerPage:
+          type: integer
+          example: 20

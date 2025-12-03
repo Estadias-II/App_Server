@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const whitelist = [process.env.FRONTEND_URL];
+const whitelist = [process.env.FRONTEND_URL, 'http://localhost:18512'];
 
 export const corsOptions: CorsOptions = {
     origin: function (origin: string | undefined, callback) {
